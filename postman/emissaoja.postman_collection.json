@@ -182,7 +182,7 @@
             "method": "PUT",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"aliquota_simples\": \"<number>\",\n  \"reg_ap_trib_sn\": 1\n}",
+              "raw": "{\n  \"aliquota_simples\": \"<number>\",\n  \"reg_ap_trib_sn\": 2\n}",
               "options": {
                 "raw": {
                   "headerFamily": "json",
@@ -319,7 +319,7 @@
                     "type": "text/plain"
                   },
                   "key": "ordem",
-                  "value": "recentes"
+                  "value": "nome"
                 }
               ],
               "variable": []
@@ -647,7 +647,7 @@
                     "type": "text/plain"
                   },
                   "key": "ativos",
-                  "value": "0"
+                  "value": "todos"
                 }
               ],
               "variable": []
@@ -951,7 +951,7 @@
                     "type": "text/plain"
                   },
                   "key": "periodo",
-                  "value": "12_meses"
+                  "value": "mes_atual"
                 },
                 {
                   "disabled": false,
@@ -978,7 +978,7 @@
                     "type": "text/plain"
                   },
                   "key": "situacao",
-                  "value": "<string>"
+                  "value": "emitidas"
                 },
                 {
                   "disabled": false,
@@ -1053,7 +1053,7 @@
                   "type": "text/plain"
                 },
                 "key": "Idempotency-Key",
-                "value": "dNmzZ2dyD9o3K"
+                "value": "1d5X5sZbzqymRVq9TOQtJ71JkfI1Aorh_HuUjRjZB4lTKsU1DdBi"
               },
               {
                 "key": "Content-Type",
@@ -1067,7 +1067,7 @@
             "method": "POST",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tomador_tipo\": \"pj\",\n  \"tomador_id\": \"<string>\",\n  \"valor\": \"<number>\",\n  \"servico_id\": \"<string>\",\n  \"descricao\": \"<string>\",\n  \"competencia\": \"<date>\",\n  \"retem_iss\": \"<boolean>\",\n  \"aliquota_iss\": \"<number>\",\n  \"municipio_prestacao\": \"<string>\",\n  \"confirmo_repeticao\": \"<boolean>\",\n  \"permitir_repetida_de\": \"<string>\"\n}",
+              "raw": "{\n  \"tomador_tipo\": \"pf\",\n  \"tomador_id\": \"<string>\",\n  \"valor\": \"<number>\",\n  \"servico_id\": \"<string>\",\n  \"descricao\": \"<string>\",\n  \"competencia\": \"<date>\",\n  \"retem_iss\": \"<boolean>\",\n  \"aliquota_iss\": \"<number>\",\n  \"municipio_prestacao\": \"<string>\",\n  \"confirmo_repeticao\": \"<boolean>\",\n  \"permitir_repetida_de\": \"<string>\"\n}",
               "options": {
                 "raw": {
                   "headerFamily": "json",
@@ -1307,7 +1307,7 @@
             "method": "POST",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"motivo\": \"1\",\n  \"justificativa\": \"<string>\"\n}",
+              "raw": "{\n  \"motivo\": \"2\",\n  \"justificativa\": \"<string>\"\n}",
               "options": {
                 "raw": {
                   "headerFamily": "json",
@@ -1404,7 +1404,7 @@
             "method": "POST",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tomador_tipo\": \"pj\",\n  \"tomador_id\": \"<string>\",\n  \"valor\": \"<number>\",\n  \"servico_id\": \"<string>\",\n  \"descricao\": \"<string>\",\n  \"competencia\": \"<date>\",\n  \"retem_iss\": \"<boolean>\",\n  \"aliquota_iss\": \"<number>\",\n  \"municipio_prestacao\": \"<string>\"\n}",
+              "raw": "{\n  \"tomador_tipo\": \"pf\",\n  \"tomador_id\": \"<string>\",\n  \"valor\": \"<number>\",\n  \"servico_id\": \"<string>\",\n  \"descricao\": \"<string>\",\n  \"competencia\": \"<date>\",\n  \"retem_iss\": \"<boolean>\",\n  \"aliquota_iss\": \"<number>\",\n  \"municipio_prestacao\": \"<string>\"\n}",
               "options": {
                 "raw": {
                   "headerFamily": "json",

@@ -2742,8 +2742,9 @@
             "in": "query",
             "schema": {
               "enum": [
-                "30_dias",
-                "90_dias",
+                "mes_atual",
+                "mes_anterior",
+                "ano_atual",
                 "12_meses",
                 "personalizado"
               ]
@@ -2769,7 +2770,11 @@
             "name": "situacao",
             "in": "query",
             "schema": {
-              "type": "string"
+              "enum": [
+                "todas",
+                "emitidas",
+                "canceladas"
+              ]
             }
           },
           {
