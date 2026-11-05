@@ -56,7 +56,7 @@ curl -X POST $BASE/v1/notas -H "Authorization: Bearer $EMISSAOJA_KEY" \
 curl $BASE/v1/emissoes/<id do pedido> -H "Authorization: Bearer $EMISSAOJA_KEY"
 ```
 
-O roteiro inteiro, com espera e download do PDF e do XML, está em [`exemplos/emitir-nfse-sandbox.sh`](exemplos/emitir-nfse-sandbox.sh). Valores com significado no sandbox: `13.13` → nota incerta (resolva com `POST /v1/emissoes/{id}/conferir`), `77.77` → incerta que não saiu, `99.99` → recusada.
+O roteiro inteiro, com espera e download do PDF e do XML, está em [`exemplos/emitir-nfse-sandbox.sh`](exemplos/emitir-nfse-sandbox.sh). Valores com significado no sandbox: `13.13` → nota incerta (resolva com `POST /v1/emissoes/{id}/conferir`), `77.77` → incerta que não saiu, `66.66` → recusada pelo fisco, `99.99` → bloqueio já na prévia (`422 nota_bloqueada`).
 
 ## Postman
 
