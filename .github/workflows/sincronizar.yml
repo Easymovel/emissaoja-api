@@ -1,0 +1,35 @@
+# Atualiza openapi/openapi.json a partir do OpenAPI publicado em produção, toda segunda-feira (ou à mão em
+# Actions → Sincronizar OpenAPI → Run workflow). Só quando o OpenAPI mudou, gera de novo a coleção do Postman e faz commit.
+name: Sincronizar OpenAPI
+
+on:
+  schedule:
+    - cron: '17 9 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sincronizar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Baixar o OpenAPI de produção
+        run: |
+          curl -fsS -m 60 https://emissaoja.com.br/v1/openapi.json -o /tmp/openapi.json
+          node -e "const j=require('/tmp/openapi.json'); if(!j.openapi||!j.paths) process.exit(1); require('fs').writeFileSync('openapi/openapi.json', JSON.stringify(j,null,2)+'\n')"
+      - name: Gerar a coleção do Postman e fazer commit (só se o OpenAPI mudou)
+        run: |
+          if git diff --quiet openapi; then echo "OpenAPI igual ao de produção; nada a fazer"; exit 0; fi
+          node scripts/preparar-openapi.cjs openapi/openapi.json /tmp/spec-postman.json
+          npx --yes openapi-to-postmanv2@4 -s /tmp/spec-postman.json -o postman/emissaoja.postman_collection.json -p -O folderStrategy=Tags,requestParametersResolution=Example
+          node scripts/ajustar-postman.cjs
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add openapi postman
+          git commit -m "Sincroniza o OpenAPI e a coleção do Postman com a produção"
+          git push

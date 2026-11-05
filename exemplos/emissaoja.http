@@ -1,0 +1,41 @@
+# Requisições da API do emissaoja para a extensão REST Client (VS Code) ou o cliente HTTP do JetBrains.
+# Crie a chave em https://sandbox.emissaoja.com.br (Conta → API) e troque @chave.
+@base = https://sandbox.emissaoja.com.br
+@chave = ej_test_SUA_CHAVE
+
+### Status (sem chave)
+GET {{base}}/v1/status
+
+### Minha empresa
+GET {{base}}/v1/empresa
+Authorization: Bearer {{chave}}
+
+### Conectar a empresa de exemplo (sandbox: qualquer senha)
+PUT {{base}}/v1/empresa/credencial
+Authorization: Bearer {{chave}}
+Content-Type: application/json
+
+{ "cnpj": "11111111000191", "senha": "senha-de-teste" }
+
+### Tomador pelo CNPJ
+POST {{base}}/v1/tomadores
+Authorization: Bearer {{chave}}
+Content-Type: application/json
+
+{ "documento": "12345678000195" }
+
+### Emitir NFS-e (troque o tomador_id)
+POST {{base}}/v1/notas
+Authorization: Bearer {{chave}}
+Content-Type: application/json
+Idempotency-Key: pedido-2026-11-0001
+
+{ "tomador_tipo": "pj", "tomador_id": "<id do tomador>", "valor": 150, "descricao": "Consultoria em marketing digital" }
+
+### Acompanhar o pedido (troque o id)
+GET {{base}}/v1/emissoes/<id do pedido>
+Authorization: Bearer {{chave}}
+
+### Notas do mês
+GET {{base}}/v1/notas?periodo=mes_atual
+Authorization: Bearer {{chave}}

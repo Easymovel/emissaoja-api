@@ -1,0 +1,1801 @@
+{
+  "item": [
+    {
+      "name": "Empresa",
+      "description": "",
+      "item": [
+        {
+          "id": "bc058ca4-a55d-52a4-acce-d3fe2d7f0f47",
+          "name": "A empresa da conta: estado da credencial, do onboarding e da importação",
+          "request": {
+            "name": "A empresa da conta: estado da credencial, do onboarding e da importação",
+            "description": {},
+            "url": {
+              "path": [
+                "v1",
+                "empresa"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "body": {}
+          },
+          "response": [],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "82b8c311-bca6-5947-ae02-4641f442ce63",
+          "name": "Conectar a empresa: CNPJ e senha do Emissor Nacional (verificação + retro-seed)",
+          "request": {
+            "name": "Conectar a empresa: CNPJ e senha do Emissor Nacional (verificação + retro-seed)",
+            "description": {
+              "content": "Responde antes de falar com o portal. A verificação segue em segundo plano; acompanhe em `GET /v1/empresa/credencial` (a cada 2 s, depois 5 s) até `proximo_passo` sair de `aguardar`. Com a senha aceita, o motor lê o cadastro fiscal e traz as notas dos últimos 90 dias (`onboarding.estado`: `configurando` → `perguntas` → `pronto`). A senha nunca é guardada nem devolvida. Limites anti-oráculo (§4.6): 3 falhas por CNPJ em 24 h, 5 por conta, 10 por IP.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v1",
+                "empresa",
+                "credencial"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "PUT",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cnpj\": \"<string>\",\n  \"senha\": \"<string>\",\n  \"ciente_ultima_tentativa\": \"<boolean>\"\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "bc6b85ea-a504-5db4-aec3-86cc0eca5b62",
+          "name": "Estado da credencial e da última tentativa",
+          "request": {
+            "name": "Estado da credencial e da última tentativa",
+            "description": {},
+            "url": {
+              "path": [
+                "v1",
+                "empresa",
+                "credencial"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "body": {}
+          },
+          "response": [],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "905ffac0-4666-56a5-ac8c-e90528791785",
+          "name": "Estágios, perguntas pendentes e bloqueio do onboarding",
+          "request": {
+            "name": "Estágios, perguntas pendentes e bloqueio do onboarding",
+            "description": {},
+            "url": {
+              "path": [
+                "v1",
+                "empresa",
+                "onboarding"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "body": {}
+          },
+          "response": [],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "5b6f44a4-219e-58e5-ac0f-9062f4c8aa1b",
+          "name": "Responder as perguntas fiscais (alíquota do Simples, regime de apuração)",
+          "request": {
+            "name": "Responder as perguntas fiscais (alíquota do Simples, regime de apuração)",
+            "description": {},
+            "url": {
+              "path": [
+                "v1",
+                "empresa",
+                "fiscal"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "PUT",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"aliquota_simples\": \"<number>\",\n  \"reg_ap_trib_sn\": 1\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "da5eb44d-11ad-53a4-a03b-a217adcf7ec0",
+          "name": "Ler o cadastro fiscal de novo no portal",
+          "request": {
+            "name": "Ler o cadastro fiscal de novo no portal",
+            "description": {},
+            "url": {
+              "path": [
+                "v1",
+                "empresa",
+                "reler-fisco"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "body": {}
+          },
+          "response": [],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "5bb35ebf-b8a5-57cc-a7e3-eca502549bdf",
+          "name": "Usar outro CNPJ depois de um bloqueio definitivo",
+          "request": {
+            "name": "Usar outro CNPJ depois de um bloqueio definitivo",
+            "description": {},
+            "url": {
+              "path": [
+                "v1",
+                "empresa",
+                "recomecar"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "body": {}
+          },
+          "response": [],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        }
+      ],
+      "id": "6f3b95ac-9768-5aaf-a18b-eee714abed2a"
+    },
+    {
+      "name": "Tomadores",
+      "description": "",
+      "item": [
+        {
+          "id": "c451643a-bf5f-5cb5-a782-63fde35aabf8",
+          "name": "Listar tomadores",
+          "request": {
+            "name": "Listar tomadores",
+            "description": {},
+            "url": {
+              "path": [
+                "v1",
+                "tomadores"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [
+                {
+                  "disabled": false,
+                  "description": {
+                    "content": "",
+                    "type": "text/plain"
+                  },
+                  "key": "busca",
+                  "value": "<string>"
+                },
+                {
+                  "disabled": false,
+                  "description": {
+                    "content": "",
+                    "type": "text/plain"
+                  },
+                  "key": "pagina",
+                  "value": "<integer>"
+                },
+                {
+                  "disabled": false,
+                  "description": {
+                    "content": "",
+                    "type": "text/plain"
+                  },
+                  "key": "limite",
+                  "value": "<integer>"
+                },
+                {
+                  "disabled": false,
+                  "description": {
+                    "content": "",
+                    "type": "text/plain"
+                  },
+                  "key": "ordem",
+                  "value": "recentes"
+                }
+              ],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "body": {}
+          },
+          "response": [],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "c1c6fba6-5bb3-5853-a9d0-bd1fb1f14b25",
+          "name": "Criar tomador por CNPJ (preenchido pela Receita) ou CPF + nome",
+          "request": {
+            "name": "Criar tomador por CNPJ (preenchido pela Receita) ou CPF + nome",
+            "description": {},
+            "url": {
+              "path": [
+                "v1",
+                "tomadores"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"documento\": \"<string>\",\n  \"nome\": \"<string>\"\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "bc4259dc-8c0d-58de-a797-0518cfac6160",
+          "name": "Busca rápida (nome ou documento, 2+ caracteres)",
+          "request": {
+            "name": "Busca rápida (nome ou documento, 2+ caracteres)",
+            "description": {},
+            "url": {
+              "path": [
+                "v1",
+                "tomadores",
+                "busca"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [
+                {
+                  "disabled": false,
+                  "description": {
+                    "content": "(Required) ",
+                    "type": "text/plain"
+                  },
+                  "key": "q",
+                  "value": "<string>"
+                }
+              ],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "body": {}
+          },
+          "response": [],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "6f664f55-ba28-5c49-a041-73266fb2e3e9",
+          "name": "Ficha do tomador",
+          "request": {
+            "name": "Ficha do tomador",
+            "description": {},
+            "url": {
+              "path": [
+                "v1",
+                "tomadores",
+                ":tipo",
+                ":id"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "tipo",
+                  "disabled": false,
+                  "description": {
+                    "content": "(Required) pj | pf",
+                    "type": "text/plain"
+                  }
+                },
+                {
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "id",
+                  "disabled": false,
+                  "description": {
+                    "content": "(Required) id do tomador",
+                    "type": "text/plain"
+                  }
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "body": {}
+          },
+          "response": [],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "da015f6c-4c4e-5c5c-a2a1-4625e4204481",
+          "name": "Editar o tomador (campos de endereço e contato; o documento é imutável)",
+          "request": {
+            "name": "Editar o tomador (campos de endereço e contato; o documento é imutável)",
+            "description": {},
+            "url": {
+              "path": [
+                "v1",
+                "tomadores",
+                ":tipo",
+                ":id"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "tipo",
+                  "disabled": false,
+                  "description": {
+                    "content": "(Required) pj | pf",
+                    "type": "text/plain"
+                  }
+                },
+                {
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "id",
+                  "disabled": false,
+                  "description": {
+                    "content": "(Required) id do tomador",
+                    "type": "text/plain"
+                  }
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "PUT",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"<string>\",\n  \"cep\": \"<string>\",\n  \"endereco\": \"<string>\",\n  \"numero\": \"<string>\",\n  \"complemento\": \"<string>\",\n  \"bairro\": \"<string>\",\n  \"cidade\": \"<string>\",\n  \"estado\": \"<string>\",\n  \"codigo_municipio_ibge\": \"<string>\",\n  \"telefone\": \"<string>\",\n  \"email\": \"<string>\",\n  \"inscricao_municipal\": \"<string>\",\n  \"atualizar_pela_receita\": \"<boolean>\"\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "7ec49086-5a7d-5529-a777-49e031377dc0",
+          "name": "Editar o tomador (campos de endereço e contato; o documento é imutável) (igual a PUT /v1/tomadores/:tipo/:id)",
+          "request": {
+            "name": "Editar o tomador (campos de endereço e contato; o documento é imutável) (igual a PUT /v1/tomadores/:tipo/:id)",
+            "description": {},
+            "url": {
+              "path": [
+                "v1",
+                "tomadores",
+                ":tipo",
+                ":id"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "tipo",
+                  "disabled": false,
+                  "description": {
+                    "content": "(Required) pj | pf",
+                    "type": "text/plain"
+                  }
+                },
+                {
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "id",
+                  "disabled": false,
+                  "description": {
+                    "content": "(Required) id do tomador",
+                    "type": "text/plain"
+                  }
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "PATCH",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"<string>\",\n  \"cep\": \"<string>\",\n  \"endereco\": \"<string>\",\n  \"numero\": \"<string>\",\n  \"complemento\": \"<string>\",\n  \"bairro\": \"<string>\",\n  \"cidade\": \"<string>\",\n  \"estado\": \"<string>\",\n  \"codigo_municipio_ibge\": \"<string>\",\n  \"telefone\": \"<string>\",\n  \"email\": \"<string>\",\n  \"inscricao_municipal\": \"<string>\",\n  \"atualizar_pela_receita\": \"<boolean>\"\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        }
+      ],
+      "id": "d53a897b-83b6-5dde-a8da-bdabcefdc33f"
+    },
+    {
+      "name": "Serviços",
+      "description": "",
+      "item": [
+        {
+          "id": "6cbc6469-76b0-5428-a61f-39dc2ce1bb52",
+          "name": "Listar serviços",
+          "request": {
+            "name": "Listar serviços",
+            "description": {},
+            "url": {
+              "path": [
+                "v1",
+                "servicos"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [
+                {
+                  "disabled": false,
+                  "description": {
+                    "content": "",
+                    "type": "text/plain"
+                  },
+                  "key": "ativos",
+                  "value": "0"
+                }
+              ],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "body": {}
+          },
+          "response": [],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "72af1f1f-f996-5dd7-a0fc-4204eb42b3e1",
+          "name": "Criar serviço",
+          "request": {
+            "name": "Criar serviço",
+            "description": {},
+            "url": {
+              "path": [
+                "v1",
+                "servicos"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"descricao\": \"<string>\",\n  \"c_trib_nac\": \"<string,null>\",\n  \"trib_issqn\": \"tributavel\",\n  \"retem_iss\": \"<boolean>\",\n  \"id\": \"<string>\",\n  \"descricao_da_nota\": \"<string,null>\",\n  \"principal\": \"<boolean>\",\n  \"ativo\": \"<boolean>\",\n  \"c_trib_mun\": \"<string,null>\",\n  \"item_lc116\": \"<string,null>\",\n  \"nbs\": \"<string,null>\",\n  \"tp_oper\": \"<integer,null>\",\n  \"aliquota_iss\": \"<number,null>\"\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "2e3e4002-bc28-503e-a480-26ea19c041a4",
+          "name": "Editar serviço (parcial)",
+          "request": {
+            "name": "Editar serviço (parcial)",
+            "description": {},
+            "url": {
+              "path": [
+                "v1",
+                "servicos",
+                ":id"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "id",
+                  "disabled": false,
+                  "description": {
+                    "content": "(Required) id do serviço",
+                    "type": "text/plain"
+                  }
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "PUT",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"<string>\",\n  \"descricao\": \"<string>\",\n  \"descricao_da_nota\": \"<string,null>\",\n  \"principal\": \"<boolean>\",\n  \"ativo\": \"<boolean>\",\n  \"c_trib_nac\": \"<string,null>\",\n  \"c_trib_mun\": \"<string,null>\",\n  \"item_lc116\": \"<string,null>\",\n  \"nbs\": \"<string,null>\",\n  \"trib_issqn\": \"nao_incidencia\",\n  \"tp_oper\": \"<integer,null>\",\n  \"retem_iss\": \"<boolean>\",\n  \"aliquota_iss\": \"<number,null>\"\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "7891d15a-6ace-50b0-a368-3647ab52fd8d",
+          "name": "Editar serviço (parcial) (igual a PUT /v1/servicos/:id)",
+          "request": {
+            "name": "Editar serviço (parcial) (igual a PUT /v1/servicos/:id)",
+            "description": {},
+            "url": {
+              "path": [
+                "v1",
+                "servicos",
+                ":id"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "id",
+                  "disabled": false,
+                  "description": {
+                    "content": "(Required) id do serviço",
+                    "type": "text/plain"
+                  }
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "PATCH",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"<string>\",\n  \"descricao\": \"<string>\",\n  \"descricao_da_nota\": \"<string,null>\",\n  \"principal\": \"<boolean>\",\n  \"ativo\": \"<boolean>\",\n  \"c_trib_nac\": \"<string,null>\",\n  \"c_trib_mun\": \"<string,null>\",\n  \"item_lc116\": \"<string,null>\",\n  \"nbs\": \"<string,null>\",\n  \"trib_issqn\": \"nao_incidencia\",\n  \"tp_oper\": \"<integer,null>\",\n  \"retem_iss\": \"<boolean>\",\n  \"aliquota_iss\": \"<number,null>\"\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "de6341a4-9f07-5a99-a5bb-675d94742dd4",
+          "name": "Desativar serviço (notas emitidas continuam apontando para ele)",
+          "request": {
+            "name": "Desativar serviço (notas emitidas continuam apontando para ele)",
+            "description": {},
+            "url": {
+              "path": [
+                "v1",
+                "servicos",
+                ":id"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "id",
+                  "disabled": false,
+                  "description": {
+                    "content": "(Required) id do serviço",
+                    "type": "text/plain"
+                  }
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "DELETE",
+            "body": {}
+          },
+          "response": [],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "ee814805-4851-57cb-afcc-8e29c9eb8160",
+          "name": "Catálogo nacional de códigos de serviço (busca por texto)",
+          "request": {
+            "name": "Catálogo nacional de códigos de serviço (busca por texto)",
+            "description": {},
+            "url": {
+              "path": [
+                "v1",
+                "catalogo",
+                "servicos"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [
+                {
+                  "disabled": false,
+                  "description": {
+                    "content": "(Required) ",
+                    "type": "text/plain"
+                  },
+                  "key": "q",
+                  "value": "<string>"
+                },
+                {
+                  "disabled": false,
+                  "description": {
+                    "content": "",
+                    "type": "text/plain"
+                  },
+                  "key": "limite",
+                  "value": "<integer>"
+                }
+              ],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "body": {}
+          },
+          "response": [],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        }
+      ],
+      "id": "f53af778-1629-505a-af57-a14b150dcba0"
+    },
+    {
+      "name": "Notas",
+      "description": "",
+      "item": [
+        {
+          "id": "0175ac92-7a9e-5bdf-ac2f-6b98320f0b66",
+          "name": "Listar notas emitidas (locais e importadas)",
+          "request": {
+            "name": "Listar notas emitidas (locais e importadas)",
+            "description": {},
+            "url": {
+              "path": [
+                "v1",
+                "notas"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [
+                {
+                  "disabled": false,
+                  "description": {
+                    "content": "",
+                    "type": "text/plain"
+                  },
+                  "key": "periodo",
+                  "value": "12_meses"
+                },
+                {
+                  "disabled": false,
+                  "description": {
+                    "content": "",
+                    "type": "text/plain"
+                  },
+                  "key": "de",
+                  "value": "<date>"
+                },
+                {
+                  "disabled": false,
+                  "description": {
+                    "content": "",
+                    "type": "text/plain"
+                  },
+                  "key": "ate",
+                  "value": "<date>"
+                },
+                {
+                  "disabled": false,
+                  "description": {
+                    "content": "",
+                    "type": "text/plain"
+                  },
+                  "key": "situacao",
+                  "value": "<string>"
+                },
+                {
+                  "disabled": false,
+                  "description": {
+                    "content": "",
+                    "type": "text/plain"
+                  },
+                  "key": "busca",
+                  "value": "<string>"
+                },
+                {
+                  "disabled": false,
+                  "description": {
+                    "content": "",
+                    "type": "text/plain"
+                  },
+                  "key": "cursor",
+                  "value": "<string>"
+                },
+                {
+                  "disabled": false,
+                  "description": {
+                    "content": "",
+                    "type": "text/plain"
+                  },
+                  "key": "limite",
+                  "value": "<integer>"
+                }
+              ],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "body": {}
+          },
+          "response": [],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "e46f72e3-470e-52cf-a781-4c70ae07d172",
+          "name": "Emitir uma nota (prévia + emissão num passo)",
+          "request": {
+            "name": "Emitir uma nota (prévia + emissão num passo)",
+            "description": {
+              "content": "Monta a nota com o cadastro da empresa, confere as regras (prévia) e, sem bloqueio, pede a emissão ao Emissor Nacional. Responde `202` com o `pedido`; acompanhe em `GET /v1/emissoes/{id}` até `autorizada`, `recusada` ou `incerta`. O cabeçalho `Idempotency-Key` (8 a 64 caracteres) é obrigatório: repetir a mesma chave devolve o mesmo pedido (`200` + `repetido: true`) e nunca emite duas vezes. A nota conta no plano quando o portal aceita o pedido; recusada não conta.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v1",
+                "notas"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "disabled": false,
+                "description": {
+                  "content": "(Required) ",
+                  "type": "text/plain"
+                },
+                "key": "Idempotency-Key",
+                "value": "dNmzZ2dyD9o3K"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tomador_tipo\": \"pj\",\n  \"tomador_id\": \"<string>\",\n  \"valor\": \"<number>\",\n  \"servico_id\": \"<string>\",\n  \"descricao\": \"<string>\",\n  \"competencia\": \"<date>\",\n  \"retem_iss\": \"<boolean>\",\n  \"aliquota_iss\": \"<number>\",\n  \"municipio_prestacao\": \"<string>\",\n  \"confirmo_repeticao\": \"<boolean>\",\n  \"permitir_repetida_de\": \"<string>\"\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "9a40863c-efb9-5201-a568-9c1c19c7cb77",
+          "name": "PDF da nota (DANFSe)",
+          "request": {
+            "name": "PDF da nota (DANFSe)",
+            "description": {},
+            "url": {
+              "path": [
+                "v1",
+                "notas",
+                ":origem",
+                ":id",
+                "pdf"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "origem",
+                  "disabled": false,
+                  "description": {
+                    "content": "(Required) local | importada",
+                    "type": "text/plain"
+                  }
+                },
+                {
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "id",
+                  "disabled": false,
+                  "description": {
+                    "content": "(Required) id da nota",
+                    "type": "text/plain"
+                  }
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "body": {}
+          },
+          "response": [],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "99ab4109-1a6b-518c-a142-221b91c8ed9c",
+          "name": "XML da nota",
+          "request": {
+            "name": "XML da nota",
+            "description": {},
+            "url": {
+              "path": [
+                "v1",
+                "notas",
+                ":origem",
+                ":id",
+                "xml"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "origem",
+                  "disabled": false,
+                  "description": {
+                    "content": "(Required) local | importada",
+                    "type": "text/plain"
+                  }
+                },
+                {
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "id",
+                  "disabled": false,
+                  "description": {
+                    "content": "(Required) id da nota",
+                    "type": "text/plain"
+                  }
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "body": {}
+          },
+          "response": [],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "6ad83720-5dee-55b9-ad51-30e11e4826c4",
+          "name": "XML do evento de cancelamento",
+          "request": {
+            "name": "XML do evento de cancelamento",
+            "description": {},
+            "url": {
+              "path": [
+                "v1",
+                "notas",
+                ":origem",
+                ":id",
+                "xml-cancelamento"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "origem",
+                  "disabled": false,
+                  "description": {
+                    "content": "(Required) local | importada",
+                    "type": "text/plain"
+                  }
+                },
+                {
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "id",
+                  "disabled": false,
+                  "description": {
+                    "content": "(Required) id da nota",
+                    "type": "text/plain"
+                  }
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "body": {}
+          },
+          "response": [],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "071d03e6-54b4-55ee-a988-0b0a85e355b2",
+          "name": "Cancelar a nota (dentro do prazo do portal)",
+          "request": {
+            "name": "Cancelar a nota (dentro do prazo do portal)",
+            "description": {
+              "content": "Responde `202` com uma `operacao`; acompanhe em `GET /v1/operacoes/{id}` (processando → concluida | falhou). Fora do prazo, o cancelamento depende de análise fiscal no portal (`cancelamento_fora_do_prazo`).",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v1",
+                "notas",
+                ":origem",
+                ":id",
+                "cancelar"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "origem",
+                  "disabled": false,
+                  "description": {
+                    "content": "(Required) local | importada",
+                    "type": "text/plain"
+                  }
+                },
+                {
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "id",
+                  "disabled": false,
+                  "description": {
+                    "content": "(Required) id da nota",
+                    "type": "text/plain"
+                  }
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"motivo\": \"1\",\n  \"justificativa\": \"<string>\"\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "c3a31f4f-3310-5084-ae83-686858ada8eb",
+          "name": "Acompanhar uma operação (cancelamento)",
+          "request": {
+            "name": "Acompanhar uma operação (cancelamento)",
+            "description": {},
+            "url": {
+              "path": [
+                "v1",
+                "operacoes",
+                ":id"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "id",
+                  "disabled": false,
+                  "description": {
+                    "content": "(Required) id da operação",
+                    "type": "text/plain"
+                  }
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "body": {}
+          },
+          "response": [],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        }
+      ],
+      "id": "985cb16b-d9d9-593e-a6b4-582f17c45e15"
+    },
+    {
+      "name": "Emissões",
+      "description": "",
+      "item": [
+        {
+          "id": "dc009d69-007d-5172-a66b-d9d6a8b2d832",
+          "name": "Só a prévia: como a nota sairia, com bloqueios e avisos",
+          "request": {
+            "name": "Só a prévia: como a nota sairia, com bloqueios e avisos",
+            "description": {},
+            "url": {
+              "path": [
+                "v1",
+                "emissoes",
+                "previa"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tomador_tipo\": \"pj\",\n  \"tomador_id\": \"<string>\",\n  \"valor\": \"<number>\",\n  \"servico_id\": \"<string>\",\n  \"descricao\": \"<string>\",\n  \"competencia\": \"<date>\",\n  \"retem_iss\": \"<boolean>\",\n  \"aliquota_iss\": \"<number>\",\n  \"municipio_prestacao\": \"<string>\"\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "de9fccd0-25ea-5e58-ae20-eaa3f125111a",
+          "name": "Emitir a partir de uma prévia (fluxo em dois passos, como o app)",
+          "request": {
+            "name": "Emitir a partir de uma prévia (fluxo em dois passos, como o app)",
+            "description": {},
+            "url": {
+              "path": [
+                "v1",
+                "emissoes"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tomador_tipo\": \"pf\",\n  \"tomador_id\": \"<string>\",\n  \"valor\": \"<number>\",\n  \"chave_idempotencia\": \"<string>\",\n  \"assinatura_previa\": \"<string>\",\n  \"servico_id\": \"<string>\",\n  \"descricao\": \"<string>\",\n  \"competencia\": \"<date>\",\n  \"retem_iss\": \"<boolean>\",\n  \"aliquota_iss\": \"<number>\",\n  \"municipio_prestacao\": \"<string>\",\n  \"confirmo_repeticao\": \"<boolean>\",\n  \"permitir_repetida_de\": \"<string>\"\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "a30f02af-4508-5058-a30e-c2a9558ea6d6",
+          "name": "Pedidos em andamento (ou por estados)",
+          "request": {
+            "name": "Pedidos em andamento (ou por estados)",
+            "description": {},
+            "url": {
+              "path": [
+                "v1",
+                "emissoes"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [
+                {
+                  "disabled": false,
+                  "description": {
+                    "content": "",
+                    "type": "text/plain"
+                  },
+                  "key": "estados",
+                  "value": "<string>"
+                }
+              ],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "body": {}
+          },
+          "response": [],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "f24afc30-3944-54bd-af40-3632479d5767",
+          "name": "Acompanhar um pedido de emissão",
+          "request": {
+            "name": "Acompanhar um pedido de emissão",
+            "description": {},
+            "url": {
+              "path": [
+                "v1",
+                "emissoes",
+                ":id"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "id",
+                  "disabled": false,
+                  "description": {
+                    "content": "(Required) id do pedido",
+                    "type": "text/plain"
+                  }
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "body": {}
+          },
+          "response": [],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "6ba6a3e0-7b9f-53b1-a7f0-80764d091c65",
+          "name": "Conferir no portal um pedido `incerta`",
+          "request": {
+            "name": "Conferir no portal um pedido `incerta`",
+            "description": {},
+            "url": {
+              "path": [
+                "v1",
+                "emissoes",
+                ":id",
+                "conferir"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "id",
+                  "disabled": false,
+                  "description": {
+                    "content": "(Required) id do pedido",
+                    "type": "text/plain"
+                  }
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "body": {}
+          },
+          "response": [],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        }
+      ],
+      "id": "0d0a984c-44be-5f8f-ae8d-3f4f8dcb2a49"
+    },
+    {
+      "name": "CNPJ",
+      "description": "",
+      "item": [
+        {
+          "id": "a15aeb54-dfad-5c2b-a12a-42a3fd367397",
+          "name": "Consultar os dados cadastrais de um CNPJ (Receita Federal, via apipj)",
+          "request": {
+            "name": "Consultar os dados cadastrais de um CNPJ (Receita Federal, via apipj)",
+            "description": {
+              "content": "Formato `completo` do apipj (razão social, situação, CNAEs, endereço, Simples/MEI, sócios com CPF mascarado). Não cria tomador: para isso use `POST /v1/tomadores`, que já preenche pelo CNPJ.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v1",
+                "cnpj",
+                ":cnpj"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "cnpj",
+                  "disabled": false,
+                  "description": {
+                    "content": "(Required) 14 dígitos, com ou sem pontuação",
+                    "type": "text/plain"
+                  }
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "body": {}
+          },
+          "response": [],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        }
+      ],
+      "id": "8d7e6ee0-5891-5a98-a667-b7a7bdda71c0"
+    },
+    {
+      "name": "Serviço",
+      "description": "",
+      "item": [
+        {
+          "id": "3166f81c-bcf9-57c7-ad76-eb52e3107837",
+          "name": "Status do serviço",
+          "request": {
+            "name": "Status do serviço",
+            "description": {},
+            "url": {
+              "path": [
+                "v1",
+                "status"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "body": {}
+          },
+          "response": [],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "55557641-724c-50dc-a2a8-6a71e268c413",
+          "name": "Este documento",
+          "request": {
+            "name": "Este documento",
+            "description": {},
+            "url": {
+              "path": [
+                "v1",
+                "openapi.json"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "GET",
+            "body": {}
+          },
+          "response": [],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "98ed5640-7b44-5f5a-a769-62dda97e19d2",
+          "name": "Municípios do IBGE (para `municipio_prestacao` e endereços)",
+          "request": {
+            "name": "Municípios do IBGE (para `municipio_prestacao` e endereços)",
+            "description": {},
+            "url": {
+              "path": [
+                "v1",
+                "municipios"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [
+                {
+                  "disabled": false,
+                  "description": {
+                    "content": "(Required) ",
+                    "type": "text/plain"
+                  },
+                  "key": "uf",
+                  "value": "<string>"
+                },
+                {
+                  "disabled": false,
+                  "description": {
+                    "content": "",
+                    "type": "text/plain"
+                  },
+                  "key": "q",
+                  "value": "<string>"
+                }
+              ],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "body": {}
+          },
+          "response": [],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        }
+      ],
+      "id": "ceec5e3d-5ae4-5439-ac9c-65c09cbd5503"
+    }
+  ],
+  "event": [],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://sandbox.emissaoja.com.br",
+      "type": "string"
+    },
+    {
+      "key": "apiKey",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "info": {
+    "_postman_id": "b6f1c0de-5e1a-4c0a-9a0e-3e15a0ca0001",
+    "name": "emissaoja API (NFS-e nacional)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Coleção oficial da API do emissaoja: emita NFS-e no Emissor Nacional sem certificado digital, para MEI e Simples Nacional. Defina a variável apiKey com uma chave ej_test_ (sandbox) ou ej_live_ (produção), criada em Conta → API. A variável baseUrl começa no sandbox (https://sandbox.emissaoja.com.br); em produção, use https://emissaoja.com.br. Documentação: https://emissaoja.com.br/docs/"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{apiKey}}",
+        "type": "string"
+      }
+    ]
+  }
+}

@@ -1,0 +1,4738 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "emissaoja API",
+    "version": "0.1.0",
+    "description": "Emissão de NFS-e no Emissor Nacional com CNPJ e senha do portal (sem certificado digital), para MEI e empresas do Simples Nacional.\n\nAutenticação: `Authorization: Bearer ej_live_…` (crie a chave em Conta → API no app; a chave herda a empresa e o plano da conta).\n\nToda resposta é JSON em snake_case; erros vêm como `{ \"status\": \"ERROR\", \"code\": \"...\", \"message\": \"...\" }` e o código é o que importa.\n\nFluxo mínimo: `PUT /v1/empresa/credencial` → acompanhar `GET /v1/empresa/credencial` → `POST /v1/tomadores` → `POST /v1/notas` (com `Idempotency-Key`) → `GET /v1/emissoes/{id}` → `GET /v1/notas/{origem}/{id}/pdf`.",
+    "contact": {
+      "url": "https://emissaoja.com.br/docs"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://emissaoja.com.br"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Empresa"
+    },
+    {
+      "name": "Tomadores"
+    },
+    {
+      "name": "Serviços"
+    },
+    {
+      "name": "Notas"
+    },
+    {
+      "name": "Emissões"
+    },
+    {
+      "name": "CNPJ"
+    },
+    {
+      "name": "Serviço"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "chaveApi": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "ej_live_…"
+      }
+    },
+    "schemas": {
+      "Erro": {
+        "type": "object",
+        "required": [
+          "status",
+          "code",
+          "message"
+        ],
+        "properties": {
+          "status": {
+            "const": "ERROR"
+          },
+          "code": {
+            "type": "string",
+            "description": "Código da lista fechada (§4.5). Decida por ele, nunca pelo texto."
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/v1/status": {
+      "get": {
+        "tags": [
+          "Serviço"
+        ],
+        "operationId": "getStatus",
+        "summary": "Status do serviço",
+        "responses": {
+          "200": {
+            "description": "No ar",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean"
+                    },
+                    "versao": {
+                      "type": "string"
+                    },
+                    "motor": {
+                      "enum": [
+                        "ok",
+                        "degradado",
+                        "simulado"
+                      ]
+                    },
+                    "ambiente": {
+                      "enum": [
+                        "producao",
+                        "sandbox"
+                      ]
+                    },
+                    "tempo": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/v1/openapi.json": {
+      "get": {
+        "tags": [
+          "Serviço"
+        ],
+        "operationId": "getOpenapi.json",
+        "summary": "Este documento",
+        "responses": {
+          "200": {
+            "description": "OpenAPI 3.1"
+          }
+        },
+        "security": []
+      }
+    },
+    "/v1/empresa": {
+      "get": {
+        "tags": [
+          "Empresa"
+        ],
+        "operationId": "getEmpresa",
+        "summary": "A empresa da conta: estado da credencial, do onboarding e da importação",
+        "responses": {
+          "200": {
+            "description": "Empresa",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "usuario": {
+                      "type": "object",
+                      "properties": {
+                        "email": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "empresa": {
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "properties": {
+                        "cnpj": {
+                          "type": "string"
+                        },
+                        "cnpj_formatado": {
+                          "type": "string"
+                        },
+                        "nome": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "porte_simples": {
+                          "enum": [
+                            "mei",
+                            "me_epp",
+                            null
+                          ]
+                        },
+                        "vinculo": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "credencial": {
+                      "type": "object",
+                      "properties": {
+                        "estado": {
+                          "enum": [
+                            "ausente",
+                            "verificando",
+                            "ativa",
+                            "congelada"
+                          ]
+                        },
+                        "congelada_em": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "tentativa_em_voo": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        }
+                      }
+                    },
+                    "onboarding": {
+                      "type": "object",
+                      "properties": {
+                        "estado": {
+                          "enum": [
+                            "acesso_restrito",
+                            "aceite",
+                            "verificando",
+                            "bloqueado",
+                            "credencial",
+                            "credencial_congelada",
+                            "configurando",
+                            "perguntas",
+                            "pronto"
+                          ]
+                        }
+                      }
+                    },
+                    "importacao": {
+                      "type": [
+                        "object",
+                        "null"
+                      ]
+                    },
+                    "avisos": {
+                      "type": "array"
+                    },
+                    "aceite": {
+                      "type": "object",
+                      "properties": {
+                        "pendente": {
+                          "type": "boolean"
+                        }
+                      }
+                    },
+                    "tempo": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chave ausente, inválida ou revogada (`chave_invalida`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Limite por minuto (`rate_limited`, cabeçalho `Retry-After`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "chaveApi": []
+          }
+        ]
+      }
+    },
+    "/v1/empresa/credencial": {
+      "put": {
+        "tags": [
+          "Empresa"
+        ],
+        "operationId": "putEmpresaCredencial",
+        "summary": "Conectar a empresa: CNPJ e senha do Emissor Nacional (verificação + retro-seed)",
+        "description": "Responde antes de falar com o portal. A verificação segue em segundo plano; acompanhe em `GET /v1/empresa/credencial` (a cada 2 s, depois 5 s) até `proximo_passo` sair de `aguardar`. Com a senha aceita, o motor lê o cadastro fiscal e traz as notas dos últimos 90 dias (`onboarding.estado`: `configurando` → `perguntas` → `pronto`). A senha nunca é guardada nem devolvida. Limites anti-oráculo (§4.6): 3 falhas por CNPJ em 24 h, 5 por conta, 10 por IP.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "cnpj",
+                  "senha"
+                ],
+                "properties": {
+                  "cnpj": {
+                    "type": "string"
+                  },
+                  "senha": {
+                    "type": "string"
+                  },
+                  "ciente_ultima_tentativa": {
+                    "type": "boolean",
+                    "description": "obrigatório `true` quando `tentativas.ultima_exige_confirmacao`"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Tentativa iniciada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "tentativa": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "estado": {
+                          "enum": [
+                            "verificando",
+                            "aceita",
+                            "senha_recusada",
+                            "portal_indisponivel",
+                            "bloqueada",
+                            "interrompida",
+                            "erro"
+                          ]
+                        },
+                        "proximo_passo": {
+                          "enum": [
+                            "aguardar",
+                            "configurando",
+                            "pronto",
+                            "corrigir_senha",
+                            "tentar_mais_tarde",
+                            "redefinir_no_portal",
+                            "suporte"
+                          ]
+                        },
+                        "code": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`cnpj_invalido`, `cpf_nao_aceito`, `cnpj_alfanumerico_nao_suportado`, `validation_error`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chave ausente, inválida ou revogada (`chave_invalida`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "`cnpj_ja_vinculado`, `ja_tem_empresa`, `verificacao_em_andamento`, `confirmar_ultima_tentativa`, `aceite_pendente`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Limite por minuto (`rate_limited`, cabeçalho `Retry-After`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "chaveApi": []
+          }
+        ]
+      },
+      "get": {
+        "tags": [
+          "Empresa"
+        ],
+        "operationId": "getEmpresaCredencial",
+        "summary": "Estado da credencial e da última tentativa",
+        "responses": {
+          "200": {
+            "description": "Credencial",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "credencial": {
+                      "type": "object",
+                      "properties": {
+                        "estado": {
+                          "enum": [
+                            "ausente",
+                            "verificando",
+                            "ativa",
+                            "congelada"
+                          ]
+                        },
+                        "congelada_em": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "tentativa_em_voo": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        }
+                      }
+                    },
+                    "onboarding": {
+                      "type": "object"
+                    },
+                    "tentativa": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "estado": {
+                          "enum": [
+                            "verificando",
+                            "aceita",
+                            "senha_recusada",
+                            "portal_indisponivel",
+                            "bloqueada",
+                            "interrompida",
+                            "erro"
+                          ]
+                        },
+                        "proximo_passo": {
+                          "enum": [
+                            "aguardar",
+                            "configurando",
+                            "pronto",
+                            "corrigir_senha",
+                            "tentar_mais_tarde",
+                            "redefinir_no_portal",
+                            "suporte"
+                          ]
+                        },
+                        "code": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        }
+                      },
+                      "nullable": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chave ausente, inválida ou revogada (`chave_invalida`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "`aceite_pendente`: aceite os termos no app antes de usar a chave.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Limite por minuto (`rate_limited`, cabeçalho `Retry-After`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "chaveApi": []
+          }
+        ]
+      }
+    },
+    "/v1/empresa/onboarding": {
+      "get": {
+        "tags": [
+          "Empresa"
+        ],
+        "operationId": "getEmpresaOnboarding",
+        "summary": "Estágios, perguntas pendentes e bloqueio do onboarding",
+        "responses": {
+          "200": {
+            "description": "Onboarding",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chave ausente, inválida ou revogada (`chave_invalida`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "`aceite_pendente`: aceite os termos no app antes de usar a chave.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Limite por minuto (`rate_limited`, cabeçalho `Retry-After`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "chaveApi": []
+          }
+        ]
+      }
+    },
+    "/v1/empresa/fiscal": {
+      "put": {
+        "tags": [
+          "Empresa"
+        ],
+        "operationId": "putEmpresaFiscal",
+        "summary": "Responder as perguntas fiscais (alíquota do Simples, regime de apuração)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "aliquota_simples": {
+                    "type": "number",
+                    "description": "0 < x ≤ 33"
+                  },
+                  "reg_ap_trib_sn": {
+                    "enum": [
+                      1,
+                      2,
+                      3
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Gravado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`aliquota_invalida`, `regime_invalido`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chave ausente, inválida ou revogada (`chave_invalida`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`pergunta_desligada`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "`sem_empresa` (conecte a empresa em `PUT /v1/empresa/credencial`) ou `aceite_pendente`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Limite por minuto (`rate_limited`, cabeçalho `Retry-After`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "chaveApi": []
+          }
+        ]
+      }
+    },
+    "/v1/empresa/reler-fisco": {
+      "post": {
+        "tags": [
+          "Empresa"
+        ],
+        "operationId": "postEmpresaRelerFisco",
+        "summary": "Ler o cadastro fiscal de novo no portal",
+        "responses": {
+          "202": {
+            "description": "Leitura agendada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chave ausente, inválida ou revogada (`chave_invalida`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "`sem_empresa` (conecte a empresa em `PUT /v1/empresa/credencial`) ou `aceite_pendente`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Limite por minuto (`rate_limited`, cabeçalho `Retry-After`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "chaveApi": []
+          }
+        ]
+      }
+    },
+    "/v1/empresa/recomecar": {
+      "post": {
+        "tags": [
+          "Empresa"
+        ],
+        "operationId": "postEmpresaRecomecar",
+        "summary": "Usar outro CNPJ depois de um bloqueio definitivo",
+        "responses": {
+          "200": {
+            "description": "Ok",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chave ausente, inválida ou revogada (`chave_invalida`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "`aceite_pendente`: aceite os termos no app antes de usar a chave.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Limite por minuto (`rate_limited`, cabeçalho `Retry-After`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "chaveApi": []
+          }
+        ]
+      }
+    },
+    "/v1/cnpj/{cnpj}": {
+      "get": {
+        "tags": [
+          "CNPJ"
+        ],
+        "operationId": "getCnpjCnpj",
+        "summary": "Consultar os dados cadastrais de um CNPJ (Receita Federal, via apipj)",
+        "description": "Formato `completo` do apipj (razão social, situação, CNAEs, endereço, Simples/MEI, sócios com CPF mascarado). Não cria tomador: para isso use `POST /v1/tomadores`, que já preenche pelo CNPJ.",
+        "parameters": [
+          {
+            "name": "cnpj",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "14 dígitos, com ou sem pontuação"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Documento do apipj",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`cnpj_invalido`, `cpf_nao_aceito`, `cnpj_alfanumerico_nao_suportado`, `cnpj_nao_encontrado`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chave ausente, inválida ou revogada (`chave_invalida`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Limite por minuto (`rate_limited`, cabeçalho `Retry-After`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "`cnpj_consulta_indisponivel`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "chaveApi": []
+          }
+        ]
+      }
+    },
+    "/v1/tomadores": {
+      "get": {
+        "tags": [
+          "Tomadores"
+        ],
+        "operationId": "getTomadores",
+        "summary": "Listar tomadores",
+        "parameters": [
+          {
+            "name": "busca",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pagina",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "limite",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "maximum": 50
+            }
+          },
+          {
+            "name": "ordem",
+            "in": "query",
+            "schema": {
+              "enum": [
+                "nome",
+                "recentes"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Página",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "tomadores": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "tipo": {
+                            "enum": [
+                              "pj",
+                              "pf"
+                            ]
+                          },
+                          "id": {
+                            "type": "string",
+                            "description": "UUID do motor"
+                          },
+                          "nome": {
+                            "type": "string"
+                          },
+                          "documento": {
+                            "type": "string",
+                            "description": "só dígitos"
+                          },
+                          "documento_formatado": {
+                            "type": "string"
+                          },
+                          "cidade": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "uf": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "notas_emitidas": {
+                            "type": "integer"
+                          },
+                          "ultima_nota_em": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "format": "date-time"
+                          }
+                        }
+                      }
+                    },
+                    "total": {
+                      "type": "integer"
+                    },
+                    "pagina": {
+                      "type": "integer"
+                    },
+                    "limite": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chave ausente, inválida ou revogada (`chave_invalida`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "`sem_empresa` (conecte a empresa em `PUT /v1/empresa/credencial`) ou `aceite_pendente`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Limite por minuto (`rate_limited`, cabeçalho `Retry-After`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "chaveApi": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Tomadores"
+        ],
+        "operationId": "postTomadores",
+        "summary": "Criar tomador por CNPJ (preenchido pela Receita) ou CPF + nome",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "documento"
+                ],
+                "properties": {
+                  "documento": {
+                    "type": "string"
+                  },
+                  "nome": {
+                    "type": "string",
+                    "description": "obrigatório para CPF"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Criado (ou `ja_existia: true` com 200)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "tomador": {
+                      "type": "object",
+                      "properties": {
+                        "tipo": {
+                          "enum": [
+                            "pj",
+                            "pf"
+                          ]
+                        },
+                        "id": {
+                          "type": "string",
+                          "description": "UUID do motor"
+                        },
+                        "nome": {
+                          "type": "string"
+                        },
+                        "documento": {
+                          "type": "string",
+                          "description": "só dígitos"
+                        },
+                        "documento_formatado": {
+                          "type": "string"
+                        },
+                        "cidade": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "uf": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "notas_emitidas": {
+                          "type": "integer"
+                        },
+                        "ultima_nota_em": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "format": "date-time"
+                        }
+                      }
+                    },
+                    "ja_existia": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`documento_invalido`, `nome_obrigatorio`, `nome_incompleto`, `cnpj_nao_encontrado`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chave ausente, inválida ou revogada (`chave_invalida`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "`sem_empresa` (conecte a empresa em `PUT /v1/empresa/credencial`) ou `aceite_pendente`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Limite por minuto (`rate_limited`, cabeçalho `Retry-After`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "`receita_indisponivel` (pode repetir)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "chaveApi": []
+          }
+        ]
+      }
+    },
+    "/v1/tomadores/busca": {
+      "get": {
+        "tags": [
+          "Tomadores"
+        ],
+        "operationId": "getTomadoresBusca",
+        "summary": "Busca rápida (nome ou documento, 2+ caracteres)",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resultados",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "tomadores": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "tipo": {
+                            "enum": [
+                              "pj",
+                              "pf"
+                            ]
+                          },
+                          "id": {
+                            "type": "string",
+                            "description": "UUID do motor"
+                          },
+                          "nome": {
+                            "type": "string"
+                          },
+                          "documento": {
+                            "type": "string",
+                            "description": "só dígitos"
+                          },
+                          "documento_formatado": {
+                            "type": "string"
+                          },
+                          "cidade": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "uf": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "notas_emitidas": {
+                            "type": "integer"
+                          },
+                          "ultima_nota_em": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "format": "date-time"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chave ausente, inválida ou revogada (`chave_invalida`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "`sem_empresa` (conecte a empresa em `PUT /v1/empresa/credencial`) ou `aceite_pendente`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Limite por minuto (`rate_limited`, cabeçalho `Retry-After`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "chaveApi": []
+          }
+        ]
+      }
+    },
+    "/v1/tomadores/{tipo}/{id}": {
+      "get": {
+        "tags": [
+          "Tomadores"
+        ],
+        "operationId": "getTomadoresTipoId",
+        "summary": "Ficha do tomador",
+        "parameters": [
+          {
+            "name": "tipo",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "pj | pf"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "id do tomador"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ficha",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "tomador": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chave ausente, inválida ou revogada (`chave_invalida`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`tomador_nao_encontrado`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "`sem_empresa` (conecte a empresa em `PUT /v1/empresa/credencial`) ou `aceite_pendente`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Limite por minuto (`rate_limited`, cabeçalho `Retry-After`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "chaveApi": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "Tomadores"
+        ],
+        "operationId": "putTomadoresTipoId",
+        "summary": "Editar o tomador (campos de endereço e contato; o documento é imutável)",
+        "parameters": [
+          {
+            "name": "tipo",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "pj | pf"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "id do tomador"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nome": {
+                    "type": "string"
+                  },
+                  "cep": {
+                    "type": "string"
+                  },
+                  "endereco": {
+                    "type": "string"
+                  },
+                  "numero": {
+                    "type": "string"
+                  },
+                  "complemento": {
+                    "type": "string"
+                  },
+                  "bairro": {
+                    "type": "string"
+                  },
+                  "cidade": {
+                    "type": "string"
+                  },
+                  "estado": {
+                    "type": "string"
+                  },
+                  "codigo_municipio_ibge": {
+                    "type": "string"
+                  },
+                  "telefone": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string"
+                  },
+                  "inscricao_municipal": {
+                    "type": "string"
+                  },
+                  "atualizar_pela_receita": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Ficha atualizada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`campo_nao_permitido`, `documento_imutavel`, `cep_invalido`, `ibge_invalido`, `uf_invalida`, `nome_incompleto`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chave ausente, inválida ou revogada (`chave_invalida`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`tomador_nao_encontrado`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "`sem_empresa` (conecte a empresa em `PUT /v1/empresa/credencial`) ou `aceite_pendente`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Limite por minuto (`rate_limited`, cabeçalho `Retry-After`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "chaveApi": []
+          }
+        ]
+      },
+      "patch": {
+        "tags": [
+          "Tomadores"
+        ],
+        "operationId": "patchTomadoresTipoId",
+        "summary": "Editar o tomador (campos de endereço e contato; o documento é imutável) (igual a PUT /v1/tomadores/:tipo/:id)",
+        "parameters": [
+          {
+            "name": "tipo",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "pj | pf"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "id do tomador"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nome": {
+                    "type": "string"
+                  },
+                  "cep": {
+                    "type": "string"
+                  },
+                  "endereco": {
+                    "type": "string"
+                  },
+                  "numero": {
+                    "type": "string"
+                  },
+                  "complemento": {
+                    "type": "string"
+                  },
+                  "bairro": {
+                    "type": "string"
+                  },
+                  "cidade": {
+                    "type": "string"
+                  },
+                  "estado": {
+                    "type": "string"
+                  },
+                  "codigo_municipio_ibge": {
+                    "type": "string"
+                  },
+                  "telefone": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string"
+                  },
+                  "inscricao_municipal": {
+                    "type": "string"
+                  },
+                  "atualizar_pela_receita": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Ficha atualizada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`campo_nao_permitido`, `documento_imutavel`, `cep_invalido`, `ibge_invalido`, `uf_invalida`, `nome_incompleto`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chave ausente, inválida ou revogada (`chave_invalida`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`tomador_nao_encontrado`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "`sem_empresa` (conecte a empresa em `PUT /v1/empresa/credencial`) ou `aceite_pendente`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Limite por minuto (`rate_limited`, cabeçalho `Retry-After`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "chaveApi": []
+          }
+        ]
+      }
+    },
+    "/v1/servicos": {
+      "get": {
+        "tags": [
+          "Serviços"
+        ],
+        "operationId": "getServicos",
+        "summary": "Listar serviços",
+        "parameters": [
+          {
+            "name": "ativos",
+            "in": "query",
+            "schema": {
+              "enum": [
+                "1",
+                "0",
+                "todos"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Serviços",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "servicos": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "description": "UUID do motor"
+                          },
+                          "descricao": {
+                            "type": "string"
+                          },
+                          "descricao_da_nota": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "principal": {
+                            "type": "boolean"
+                          },
+                          "ativo": {
+                            "type": "boolean"
+                          },
+                          "c_trib_nac": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "c_trib_mun": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "item_lc116": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "nbs": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "trib_issqn": {
+                            "enum": [
+                              "tributavel",
+                              "nao_incidencia"
+                            ]
+                          },
+                          "tp_oper": {
+                            "type": [
+                              "integer",
+                              "null"
+                            ]
+                          },
+                          "retem_iss": {
+                            "type": "boolean"
+                          },
+                          "aliquota_iss": {
+                            "type": [
+                              "number",
+                              "null"
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chave ausente, inválida ou revogada (`chave_invalida`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "`sem_empresa` (conecte a empresa em `PUT /v1/empresa/credencial`) ou `aceite_pendente`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Limite por minuto (`rate_limited`, cabeçalho `Retry-After`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "chaveApi": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Serviços"
+        ],
+        "operationId": "postServicos",
+        "summary": "Criar serviço",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "descricao",
+                  "c_trib_nac",
+                  "trib_issqn",
+                  "retem_iss"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "UUID do motor"
+                  },
+                  "descricao": {
+                    "type": "string"
+                  },
+                  "descricao_da_nota": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "principal": {
+                    "type": "boolean"
+                  },
+                  "ativo": {
+                    "type": "boolean"
+                  },
+                  "c_trib_nac": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "c_trib_mun": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "item_lc116": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "nbs": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "trib_issqn": {
+                    "enum": [
+                      "tributavel",
+                      "nao_incidencia"
+                    ]
+                  },
+                  "tp_oper": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ]
+                  },
+                  "retem_iss": {
+                    "type": "boolean"
+                  },
+                  "aliquota_iss": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Criado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "servico": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "description": "UUID do motor"
+                        },
+                        "descricao": {
+                          "type": "string"
+                        },
+                        "descricao_da_nota": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "principal": {
+                          "type": "boolean"
+                        },
+                        "ativo": {
+                          "type": "boolean"
+                        },
+                        "c_trib_nac": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "c_trib_mun": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "item_lc116": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "nbs": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "trib_issqn": {
+                          "enum": [
+                            "tributavel",
+                            "nao_incidencia"
+                          ]
+                        },
+                        "tp_oper": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ]
+                        },
+                        "retem_iss": {
+                          "type": "boolean"
+                        },
+                        "aliquota_iss": {
+                          "type": [
+                            "number",
+                            "null"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`descricao_obrigatoria`, `c_trib_nac_invalido`, `nbs_invalido`, `trib_issqn_obrigatorio`, `retem_iss_obrigatorio`, `aliquota_iss_obrigatoria`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chave ausente, inválida ou revogada (`chave_invalida`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "`sem_empresa` (conecte a empresa em `PUT /v1/empresa/credencial`) ou `aceite_pendente`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Limite por minuto (`rate_limited`, cabeçalho `Retry-After`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "chaveApi": []
+          }
+        ]
+      }
+    },
+    "/v1/servicos/{id}": {
+      "put": {
+        "tags": [
+          "Serviços"
+        ],
+        "operationId": "putServicosId",
+        "summary": "Editar serviço (parcial)",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "id do serviço"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "UUID do motor"
+                  },
+                  "descricao": {
+                    "type": "string"
+                  },
+                  "descricao_da_nota": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "principal": {
+                    "type": "boolean"
+                  },
+                  "ativo": {
+                    "type": "boolean"
+                  },
+                  "c_trib_nac": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "c_trib_mun": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "item_lc116": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "nbs": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "trib_issqn": {
+                    "enum": [
+                      "tributavel",
+                      "nao_incidencia"
+                    ]
+                  },
+                  "tp_oper": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ]
+                  },
+                  "retem_iss": {
+                    "type": "boolean"
+                  },
+                  "aliquota_iss": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Atualizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "servico": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "description": "UUID do motor"
+                        },
+                        "descricao": {
+                          "type": "string"
+                        },
+                        "descricao_da_nota": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "principal": {
+                          "type": "boolean"
+                        },
+                        "ativo": {
+                          "type": "boolean"
+                        },
+                        "c_trib_nac": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "c_trib_mun": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "item_lc116": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "nbs": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "trib_issqn": {
+                          "enum": [
+                            "tributavel",
+                            "nao_incidencia"
+                          ]
+                        },
+                        "tp_oper": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ]
+                        },
+                        "retem_iss": {
+                          "type": "boolean"
+                        },
+                        "aliquota_iss": {
+                          "type": [
+                            "number",
+                            "null"
+                          ]
+                        }
+                      }
+                    },
+                    "vinculos_atualizados": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chave ausente, inválida ou revogada (`chave_invalida`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`servico_nao_encontrado`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "`sem_empresa` (conecte a empresa em `PUT /v1/empresa/credencial`) ou `aceite_pendente`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Limite por minuto (`rate_limited`, cabeçalho `Retry-After`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "chaveApi": []
+          }
+        ]
+      },
+      "patch": {
+        "tags": [
+          "Serviços"
+        ],
+        "operationId": "patchServicosId",
+        "summary": "Editar serviço (parcial) (igual a PUT /v1/servicos/:id)",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "id do serviço"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "UUID do motor"
+                  },
+                  "descricao": {
+                    "type": "string"
+                  },
+                  "descricao_da_nota": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "principal": {
+                    "type": "boolean"
+                  },
+                  "ativo": {
+                    "type": "boolean"
+                  },
+                  "c_trib_nac": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "c_trib_mun": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "item_lc116": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "nbs": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "trib_issqn": {
+                    "enum": [
+                      "tributavel",
+                      "nao_incidencia"
+                    ]
+                  },
+                  "tp_oper": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ]
+                  },
+                  "retem_iss": {
+                    "type": "boolean"
+                  },
+                  "aliquota_iss": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Atualizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "servico": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "description": "UUID do motor"
+                        },
+                        "descricao": {
+                          "type": "string"
+                        },
+                        "descricao_da_nota": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "principal": {
+                          "type": "boolean"
+                        },
+                        "ativo": {
+                          "type": "boolean"
+                        },
+                        "c_trib_nac": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "c_trib_mun": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "item_lc116": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "nbs": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "trib_issqn": {
+                          "enum": [
+                            "tributavel",
+                            "nao_incidencia"
+                          ]
+                        },
+                        "tp_oper": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ]
+                        },
+                        "retem_iss": {
+                          "type": "boolean"
+                        },
+                        "aliquota_iss": {
+                          "type": [
+                            "number",
+                            "null"
+                          ]
+                        }
+                      }
+                    },
+                    "vinculos_atualizados": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chave ausente, inválida ou revogada (`chave_invalida`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`servico_nao_encontrado`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "`sem_empresa` (conecte a empresa em `PUT /v1/empresa/credencial`) ou `aceite_pendente`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Limite por minuto (`rate_limited`, cabeçalho `Retry-After`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "chaveApi": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Serviços"
+        ],
+        "operationId": "deleteServicosId",
+        "summary": "Desativar serviço (notas emitidas continuam apontando para ele)",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "id do serviço"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Desativado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "servico": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "description": "UUID do motor"
+                        },
+                        "descricao": {
+                          "type": "string"
+                        },
+                        "descricao_da_nota": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "principal": {
+                          "type": "boolean"
+                        },
+                        "ativo": {
+                          "type": "boolean"
+                        },
+                        "c_trib_nac": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "c_trib_mun": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "item_lc116": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "nbs": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "trib_issqn": {
+                          "enum": [
+                            "tributavel",
+                            "nao_incidencia"
+                          ]
+                        },
+                        "tp_oper": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ]
+                        },
+                        "retem_iss": {
+                          "type": "boolean"
+                        },
+                        "aliquota_iss": {
+                          "type": [
+                            "number",
+                            "null"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chave ausente, inválida ou revogada (`chave_invalida`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`servico_nao_encontrado`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "`sem_empresa` (conecte a empresa em `PUT /v1/empresa/credencial`) ou `aceite_pendente`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Limite por minuto (`rate_limited`, cabeçalho `Retry-After`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "chaveApi": []
+          }
+        ]
+      }
+    },
+    "/v1/catalogo/servicos": {
+      "get": {
+        "tags": [
+          "Serviços"
+        ],
+        "operationId": "getCatalogoServicos",
+        "summary": "Catálogo nacional de códigos de serviço (busca por texto)",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limite",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "maximum": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Itens",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "itens": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "c_trib_nac": {
+                            "type": "string"
+                          },
+                          "descricao": {
+                            "type": "string"
+                          },
+                          "item_lc116": {
+                            "type": "string"
+                          },
+                          "nbs_sugeridos": {
+                            "type": "array"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chave ausente, inválida ou revogada (`chave_invalida`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "`sem_empresa` (conecte a empresa em `PUT /v1/empresa/credencial`) ou `aceite_pendente`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Limite por minuto (`rate_limited`, cabeçalho `Retry-After`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "chaveApi": []
+          }
+        ]
+      }
+    },
+    "/v1/notas": {
+      "get": {
+        "tags": [
+          "Notas"
+        ],
+        "operationId": "getNotas",
+        "summary": "Listar notas emitidas (locais e importadas)",
+        "parameters": [
+          {
+            "name": "periodo",
+            "in": "query",
+            "schema": {
+              "enum": [
+                "30_dias",
+                "90_dias",
+                "12_meses",
+                "personalizado"
+              ]
+            }
+          },
+          {
+            "name": "de",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "ate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "situacao",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "busca",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limite",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "maximum": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Página",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "notas": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "origem": {
+                            "enum": [
+                              "local",
+                              "importada"
+                            ]
+                          },
+                          "id": {
+                            "type": "string",
+                            "description": "UUID do motor"
+                          },
+                          "numero": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "situacao": {
+                            "enum": [
+                              "emitida",
+                              "cancelada",
+                              "cancelando",
+                              "emitindo",
+                              "conferindo",
+                              "nao_emitida"
+                            ]
+                          },
+                          "emitida_em": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "format": "date-time"
+                          },
+                          "competencia": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "tomador": {
+                            "type": "object"
+                          },
+                          "descricao": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "valor": {
+                            "type": "number"
+                          },
+                          "chave_acesso": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "pedido_id": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        }
+                      }
+                    },
+                    "total": {
+                      "type": "integer"
+                    },
+                    "janela_cheia": {
+                      "type": "boolean"
+                    },
+                    "proximo_cursor": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chave ausente, inválida ou revogada (`chave_invalida`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "`sem_empresa` (conecte a empresa em `PUT /v1/empresa/credencial`) ou `aceite_pendente`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Limite por minuto (`rate_limited`, cabeçalho `Retry-After`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "chaveApi": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Notas"
+        ],
+        "operationId": "postNotas",
+        "summary": "Emitir uma nota (prévia + emissão num passo)",
+        "description": "Monta a nota com o cadastro da empresa, confere as regras (prévia) e, sem bloqueio, pede a emissão ao Emissor Nacional. Responde `202` com o `pedido`; acompanhe em `GET /v1/emissoes/{id}` até `autorizada`, `recusada` ou `incerta`. O cabeçalho `Idempotency-Key` (8 a 64 caracteres) é obrigatório: repetir a mesma chave devolve o mesmo pedido (`200` + `repetido: true`) e nunca emite duas vezes. A nota conta no plano quando o portal aceita o pedido; recusada não conta.",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{8,64}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "tomador_tipo",
+                  "tomador_id",
+                  "valor"
+                ],
+                "properties": {
+                  "tomador_tipo": {
+                    "enum": [
+                      "pj",
+                      "pf"
+                    ]
+                  },
+                  "tomador_id": {
+                    "type": "string",
+                    "description": "UUID do motor"
+                  },
+                  "valor": {
+                    "type": "number",
+                    "description": "reais, até 2 casas"
+                  },
+                  "servico_id": {
+                    "type": "string",
+                    "description": "omitido = serviço principal"
+                  },
+                  "descricao": {
+                    "type": "string",
+                    "maxLength": 2000
+                  },
+                  "competencia": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "retem_iss": {
+                    "type": "boolean"
+                  },
+                  "aliquota_iss": {
+                    "type": "number"
+                  },
+                  "municipio_prestacao": {
+                    "type": "string",
+                    "description": "código IBGE"
+                  },
+                  "confirmo_repeticao": {
+                    "type": "boolean",
+                    "description": "sim à trava de 2 min (`emissao_repetida_recente`)"
+                  },
+                  "permitir_repetida_de": {
+                    "type": "string",
+                    "description": "sim à nota igual de hoje (`possivel_duplicada`): o `pedido_id` mostrado"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Mesma chave: o pedido original",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "pedido": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "description": "UUID do motor"
+                        },
+                        "estado": {
+                          "enum": [
+                            "na_fila",
+                            "emitindo",
+                            "confirmando",
+                            "autorizada",
+                            "recusada",
+                            "incerta"
+                          ]
+                        },
+                        "motivo_code": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "motivo": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "numero": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "chave_acesso": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "consulta_publica_url": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "nota": {
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "properties": {
+                            "origem": {
+                              "type": "string"
+                            },
+                            "id": {
+                              "type": "string",
+                              "description": "UUID do motor"
+                            }
+                          }
+                        },
+                        "acoes": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "proxima_consulta_ms": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "description": "quando consultar de novo"
+                        }
+                      }
+                    },
+                    "repetido": {
+                      "const": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Pedido aceito",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "pedido": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "description": "UUID do motor"
+                        },
+                        "estado": {
+                          "enum": [
+                            "na_fila",
+                            "emitindo",
+                            "confirmando",
+                            "autorizada",
+                            "recusada",
+                            "incerta"
+                          ]
+                        },
+                        "motivo_code": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "motivo": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "numero": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "chave_acesso": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "consulta_publica_url": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "nota": {
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "properties": {
+                            "origem": {
+                              "type": "string"
+                            },
+                            "id": {
+                              "type": "string",
+                              "description": "UUID do motor"
+                            }
+                          }
+                        },
+                        "acoes": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "proxima_consulta_ms": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "description": "quando consultar de novo"
+                        }
+                      }
+                    },
+                    "previa": {
+                      "type": "object",
+                      "properties": {
+                        "resumo": {
+                          "type": "object"
+                        },
+                        "avisos": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "code": {
+                                "type": "string"
+                              },
+                              "mensagem": {
+                                "type": "string"
+                              },
+                              "acao": {
+                                "type": "string"
+                              },
+                              "detalhe": {
+                                "type": [
+                                  "object",
+                                  "null"
+                                ],
+                                "properties": {
+                                  "irrf": {
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ]
+                                  },
+                                  "csrf": {
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`chave_idempotencia_invalida`, `tomador_obrigatorio`, `tomador_nao_encontrado`, `servico_nao_encontrado`, `valor_invalido`, `competencia_invalida`, `ibge_invalido`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chave ausente, inválida ou revogada (`chave_invalida`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "`limite_notas`: limite do plano no mês",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "`emissao_repetida_recente`, `possivel_duplicada` (+ `nota_igual_recente`), `incerta_pendente`, `chave_idempotencia_conflito`, `sem_empresa`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "`nota_bloqueada`: `bloqueios[]` com `code`, `mensagem` e `acao` (o que falta no cadastro)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Limite por minuto (`rate_limited`, cabeçalho `Retry-After`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "`fila_indisponivel` (repita com a mesma chave), `motor_indisponivel`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "chaveApi": []
+          }
+        ]
+      }
+    },
+    "/v1/notas/{origem}/{id}/pdf": {
+      "get": {
+        "tags": [
+          "Notas"
+        ],
+        "operationId": "getNotasOrigemIdPdf",
+        "summary": "PDF da nota (DANFSe)",
+        "parameters": [
+          {
+            "name": "origem",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "local | importada"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "id da nota"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "application/pdf"
+          },
+          "401": {
+            "description": "Chave ausente, inválida ou revogada (`chave_invalida`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`nota_nao_encontrada`, `pdf_indisponivel`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "`sem_empresa` (conecte a empresa em `PUT /v1/empresa/credencial`) ou `aceite_pendente`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Limite por minuto (`rate_limited`, cabeçalho `Retry-After`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "chaveApi": []
+          }
+        ]
+      }
+    },
+    "/v1/notas/{origem}/{id}/xml": {
+      "get": {
+        "tags": [
+          "Notas"
+        ],
+        "operationId": "getNotasOrigemIdXml",
+        "summary": "XML da nota",
+        "parameters": [
+          {
+            "name": "origem",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "local | importada"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "id da nota"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "application/xml"
+          },
+          "401": {
+            "description": "Chave ausente, inválida ou revogada (`chave_invalida`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`nota_nao_encontrada`, `sem_xml`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "`sem_empresa` (conecte a empresa em `PUT /v1/empresa/credencial`) ou `aceite_pendente`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Limite por minuto (`rate_limited`, cabeçalho `Retry-After`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "chaveApi": []
+          }
+        ]
+      }
+    },
+    "/v1/notas/{origem}/{id}/xml-cancelamento": {
+      "get": {
+        "tags": [
+          "Notas"
+        ],
+        "operationId": "getNotasOrigemIdXmlCancelamento",
+        "summary": "XML do evento de cancelamento",
+        "parameters": [
+          {
+            "name": "origem",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "local | importada"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "id da nota"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "application/xml"
+          },
+          "401": {
+            "description": "Chave ausente, inválida ou revogada (`chave_invalida`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`nota_nao_encontrada`, `sem_evento_cancelamento`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "`sem_empresa` (conecte a empresa em `PUT /v1/empresa/credencial`) ou `aceite_pendente`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Limite por minuto (`rate_limited`, cabeçalho `Retry-After`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "chaveApi": []
+          }
+        ]
+      }
+    },
+    "/v1/notas/{origem}/{id}/cancelar": {
+      "post": {
+        "tags": [
+          "Notas"
+        ],
+        "operationId": "postNotasOrigemIdCancelar",
+        "summary": "Cancelar a nota (dentro do prazo do portal)",
+        "description": "Responde `202` com uma `operacao`; acompanhe em `GET /v1/operacoes/{id}` (processando → concluida | falhou). Fora do prazo, o cancelamento depende de análise fiscal no portal (`cancelamento_fora_do_prazo`).",
+        "parameters": [
+          {
+            "name": "origem",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "local | importada"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "id da nota"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "motivo"
+                ],
+                "properties": {
+                  "motivo": {
+                    "enum": [
+                      "1",
+                      "2"
+                    ],
+                    "description": "1 = erro na emissão, 2 = serviço não prestado"
+                  },
+                  "justificativa": {
+                    "type": "string",
+                    "minLength": 15,
+                    "maxLength": 255
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Operação iniciada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "operacao": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "tipo": {
+                          "const": "cancelamento"
+                        },
+                        "estado": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`motivo_invalido`, `justificativa_invalida`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chave ausente, inválida ou revogada (`chave_invalida`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`nota_nao_encontrada`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "`sem_empresa` (conecte a empresa em `PUT /v1/empresa/credencial`) ou `aceite_pendente`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Limite por minuto (`rate_limited`, cabeçalho `Retry-After`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "chaveApi": []
+          }
+        ]
+      }
+    },
+    "/v1/emissoes/previa": {
+      "post": {
+        "tags": [
+          "Emissões"
+        ],
+        "operationId": "postEmissoesPrevia",
+        "summary": "Só a prévia: como a nota sairia, com bloqueios e avisos",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "tomador_tipo",
+                  "tomador_id",
+                  "valor"
+                ],
+                "properties": {
+                  "tomador_tipo": {
+                    "enum": [
+                      "pj",
+                      "pf"
+                    ]
+                  },
+                  "tomador_id": {
+                    "type": "string",
+                    "description": "UUID do motor"
+                  },
+                  "valor": {
+                    "type": "number",
+                    "description": "reais, até 2 casas"
+                  },
+                  "servico_id": {
+                    "type": "string",
+                    "description": "omitido = serviço principal"
+                  },
+                  "descricao": {
+                    "type": "string",
+                    "maxLength": 2000
+                  },
+                  "competencia": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "retem_iss": {
+                    "type": "boolean"
+                  },
+                  "aliquota_iss": {
+                    "type": "number"
+                  },
+                  "municipio_prestacao": {
+                    "type": "string",
+                    "description": "código IBGE"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Prévia",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "previa": {
+                      "type": "object",
+                      "properties": {
+                        "pode_emitir": {
+                          "type": "boolean"
+                        },
+                        "assinatura": {
+                          "type": "string"
+                        },
+                        "resumo": {
+                          "type": "object"
+                        },
+                        "secoes": {
+                          "type": "array"
+                        },
+                        "bloqueios": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "code": {
+                                "type": "string"
+                              },
+                              "mensagem": {
+                                "type": "string"
+                              },
+                              "acao": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        },
+                        "avisos": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "code": {
+                                "type": "string"
+                              },
+                              "mensagem": {
+                                "type": "string"
+                              },
+                              "acao": {
+                                "type": "string"
+                              },
+                              "detalhe": {
+                                "type": [
+                                  "object",
+                                  "null"
+                                ],
+                                "properties": {
+                                  "irrf": {
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ]
+                                  },
+                                  "csrf": {
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "campos da nota",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chave ausente, inválida ou revogada (`chave_invalida`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "`sem_empresa` (conecte a empresa em `PUT /v1/empresa/credencial`) ou `aceite_pendente`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Limite por minuto (`rate_limited`, cabeçalho `Retry-After`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "chaveApi": []
+          }
+        ]
+      }
+    },
+    "/v1/emissoes": {
+      "post": {
+        "tags": [
+          "Emissões"
+        ],
+        "operationId": "postEmissoes",
+        "summary": "Emitir a partir de uma prévia (fluxo em dois passos, como o app)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "tomador_tipo",
+                  "tomador_id",
+                  "valor",
+                  "chave_idempotencia",
+                  "assinatura_previa"
+                ],
+                "properties": {
+                  "tomador_tipo": {
+                    "enum": [
+                      "pj",
+                      "pf"
+                    ]
+                  },
+                  "tomador_id": {
+                    "type": "string",
+                    "description": "UUID do motor"
+                  },
+                  "valor": {
+                    "type": "number",
+                    "description": "reais, até 2 casas"
+                  },
+                  "servico_id": {
+                    "type": "string",
+                    "description": "omitido = serviço principal"
+                  },
+                  "descricao": {
+                    "type": "string",
+                    "maxLength": 2000
+                  },
+                  "competencia": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "retem_iss": {
+                    "type": "boolean"
+                  },
+                  "aliquota_iss": {
+                    "type": "number"
+                  },
+                  "municipio_prestacao": {
+                    "type": "string",
+                    "description": "código IBGE"
+                  },
+                  "chave_idempotencia": {
+                    "type": "string"
+                  },
+                  "assinatura_previa": {
+                    "type": "string"
+                  },
+                  "confirmo_repeticao": {
+                    "type": "boolean"
+                  },
+                  "permitir_repetida_de": {
+                    "type": "string",
+                    "description": "UUID do motor"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Pedido aceito",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "pedido": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "description": "UUID do motor"
+                        },
+                        "estado": {
+                          "enum": [
+                            "na_fila",
+                            "emitindo",
+                            "confirmando",
+                            "autorizada",
+                            "recusada",
+                            "incerta"
+                          ]
+                        },
+                        "motivo_code": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "motivo": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "numero": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "chave_acesso": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "consulta_publica_url": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "nota": {
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "properties": {
+                            "origem": {
+                              "type": "string"
+                            },
+                            "id": {
+                              "type": "string",
+                              "description": "UUID do motor"
+                            }
+                          }
+                        },
+                        "acoes": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "proxima_consulta_ms": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "description": "quando consultar de novo"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chave ausente, inválida ou revogada (`chave_invalida`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "`sem_empresa` (conecte a empresa em `PUT /v1/empresa/credencial`) ou `aceite_pendente`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "`nota_bloqueada`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Limite por minuto (`rate_limited`, cabeçalho `Retry-After`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "chaveApi": []
+          }
+        ]
+      },
+      "get": {
+        "tags": [
+          "Emissões"
+        ],
+        "operationId": "getEmissoes",
+        "summary": "Pedidos em andamento (ou por estados)",
+        "parameters": [
+          {
+            "name": "estados",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "description": "lista separada por vírgula"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pedidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "pedidos": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "description": "UUID do motor"
+                          },
+                          "estado": {
+                            "enum": [
+                              "na_fila",
+                              "emitindo",
+                              "confirmando",
+                              "autorizada",
+                              "recusada",
+                              "incerta"
+                            ]
+                          },
+                          "motivo_code": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "motivo": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "numero": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "chave_acesso": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "consulta_publica_url": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "nota": {
+                            "type": [
+                              "object",
+                              "null"
+                            ],
+                            "properties": {
+                              "origem": {
+                                "type": "string"
+                              },
+                              "id": {
+                                "type": "string",
+                                "description": "UUID do motor"
+                              }
+                            }
+                          },
+                          "acoes": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "proxima_consulta_ms": {
+                            "type": [
+                              "integer",
+                              "null"
+                            ],
+                            "description": "quando consultar de novo"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chave ausente, inválida ou revogada (`chave_invalida`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "`sem_empresa` (conecte a empresa em `PUT /v1/empresa/credencial`) ou `aceite_pendente`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Limite por minuto (`rate_limited`, cabeçalho `Retry-After`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "chaveApi": []
+          }
+        ]
+      }
+    },
+    "/v1/emissoes/{id}": {
+      "get": {
+        "tags": [
+          "Emissões"
+        ],
+        "operationId": "getEmissoesId",
+        "summary": "Acompanhar um pedido de emissão",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "id do pedido"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pedido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "pedido": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "description": "UUID do motor"
+                        },
+                        "estado": {
+                          "enum": [
+                            "na_fila",
+                            "emitindo",
+                            "confirmando",
+                            "autorizada",
+                            "recusada",
+                            "incerta"
+                          ]
+                        },
+                        "motivo_code": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "motivo": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "numero": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "chave_acesso": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "consulta_publica_url": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "nota": {
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "properties": {
+                            "origem": {
+                              "type": "string"
+                            },
+                            "id": {
+                              "type": "string",
+                              "description": "UUID do motor"
+                            }
+                          }
+                        },
+                        "acoes": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "proxima_consulta_ms": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "description": "quando consultar de novo"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chave ausente, inválida ou revogada (`chave_invalida`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`pedido_nao_encontrado`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "`sem_empresa` (conecte a empresa em `PUT /v1/empresa/credencial`) ou `aceite_pendente`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Limite por minuto (`rate_limited`, cabeçalho `Retry-After`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "chaveApi": []
+          }
+        ]
+      }
+    },
+    "/v1/emissoes/{id}/conferir": {
+      "post": {
+        "tags": [
+          "Emissões"
+        ],
+        "operationId": "postEmissoesIdConferir",
+        "summary": "Conferir no portal um pedido `incerta`",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "id do pedido"
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Conferência iniciada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "pedido": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "description": "UUID do motor"
+                        },
+                        "estado": {
+                          "enum": [
+                            "na_fila",
+                            "emitindo",
+                            "confirmando",
+                            "autorizada",
+                            "recusada",
+                            "incerta"
+                          ]
+                        },
+                        "motivo_code": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "motivo": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "numero": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "chave_acesso": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "consulta_publica_url": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "nota": {
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "properties": {
+                            "origem": {
+                              "type": "string"
+                            },
+                            "id": {
+                              "type": "string",
+                              "description": "UUID do motor"
+                            }
+                          }
+                        },
+                        "acoes": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "proxima_consulta_ms": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "description": "quando consultar de novo"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chave ausente, inválida ou revogada (`chave_invalida`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`pedido_nao_encontrado`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "`sem_empresa` (conecte a empresa em `PUT /v1/empresa/credencial`) ou `aceite_pendente`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Limite por minuto (`rate_limited`, cabeçalho `Retry-After`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "chaveApi": []
+          }
+        ]
+      }
+    },
+    "/v1/operacoes/{id}": {
+      "get": {
+        "tags": [
+          "Notas"
+        ],
+        "operationId": "getOperacoesId",
+        "summary": "Acompanhar uma operação (cancelamento)",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "id da operação"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operação",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "operacao": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "tipo": {
+                          "type": "string"
+                        },
+                        "estado": {
+                          "enum": [
+                            "processando",
+                            "concluida",
+                            "falhou"
+                          ]
+                        },
+                        "resultado": {
+                          "type": [
+                            "object",
+                            "null"
+                          ]
+                        },
+                        "erro": {
+                          "type": [
+                            "object",
+                            "null"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chave ausente, inválida ou revogada (`chave_invalida`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`operacao_nao_encontrada` (expirou: releia a nota)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "`sem_empresa` (conecte a empresa em `PUT /v1/empresa/credencial`) ou `aceite_pendente`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Limite por minuto (`rate_limited`, cabeçalho `Retry-After`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "chaveApi": []
+          }
+        ]
+      }
+    },
+    "/v1/municipios": {
+      "get": {
+        "tags": [
+          "Serviço"
+        ],
+        "operationId": "getMunicipios",
+        "summary": "Municípios do IBGE (para `municipio_prestacao` e endereços)",
+        "parameters": [
+          {
+            "name": "uf",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Até 20 municípios",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chave ausente, inválida ou revogada (`chave_invalida`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "`sem_empresa` (conecte a empresa em `PUT /v1/empresa/credencial`) ou `aceite_pendente`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Limite por minuto (`rate_limited`, cabeçalho `Retry-After`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "chaveApi": []
+          }
+        ]
+      }
+    }
+  }
+}
