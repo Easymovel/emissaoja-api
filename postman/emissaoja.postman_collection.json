@@ -647,7 +647,7 @@
                     "type": "text/plain"
                   },
                   "key": "ativos",
-                  "value": "todos"
+                  "value": "0"
                 }
               ],
               "variable": []
@@ -951,7 +951,7 @@
                     "type": "text/plain"
                   },
                   "key": "periodo",
-                  "value": "mes_atual"
+                  "value": "12_meses"
                 },
                 {
                   "disabled": false,
@@ -1053,7 +1053,7 @@
                   "type": "text/plain"
                 },
                 "key": "Idempotency-Key",
-                "value": "1d5X5sZbzqymRVq9TOQtJ71JkfI1Aorh_HuUjRjZB4lTKsU1DdBi"
+                "value": "p2hCNtJnFY6"
               },
               {
                 "key": "Content-Type",
@@ -1067,7 +1067,7 @@
             "method": "POST",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tomador_tipo\": \"pf\",\n  \"tomador_id\": \"<string>\",\n  \"valor\": \"<number>\",\n  \"servico_id\": \"<string>\",\n  \"descricao\": \"<string>\",\n  \"competencia\": \"<date>\",\n  \"retem_iss\": \"<boolean>\",\n  \"aliquota_iss\": \"<number>\",\n  \"municipio_prestacao\": \"<string>\",\n  \"confirmo_repeticao\": \"<boolean>\",\n  \"permitir_repetida_de\": \"<string>\"\n}",
+              "raw": "{\n  \"tomador_tipo\": \"pf\",\n  \"tomador_id\": \"<string>\",\n  \"valor\": \"<number>\",\n  \"servico_id\": \"<string>\",\n  \"descricao\": \"<string>\",\n  \"competencia\": \"<date>\",\n  \"retem_iss\": \"<boolean>\",\n  \"aliquota_iss\": \"<number>\",\n  \"municipio_prestacao\": \"<string>\",\n  \"retencoes_federais\": {\n    \"ir\": \"<boolean>\",\n    \"csrf\": \"<boolean>\",\n    \"inss\": \"<boolean>\"\n  },\n  \"confirmo_repeticao\": \"<boolean>\",\n  \"permitir_repetida_de\": \"<string>\"\n}",
               "options": {
                 "raw": {
                   "headerFamily": "json",
@@ -1404,7 +1404,7 @@
             "method": "POST",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tomador_tipo\": \"pf\",\n  \"tomador_id\": \"<string>\",\n  \"valor\": \"<number>\",\n  \"servico_id\": \"<string>\",\n  \"descricao\": \"<string>\",\n  \"competencia\": \"<date>\",\n  \"retem_iss\": \"<boolean>\",\n  \"aliquota_iss\": \"<number>\",\n  \"municipio_prestacao\": \"<string>\"\n}",
+              "raw": "{\n  \"tomador_tipo\": \"pj\",\n  \"tomador_id\": \"<string>\",\n  \"valor\": \"<number>\",\n  \"servico_id\": \"<string>\",\n  \"descricao\": \"<string>\",\n  \"competencia\": \"<date>\",\n  \"retem_iss\": \"<boolean>\",\n  \"aliquota_iss\": \"<number>\",\n  \"municipio_prestacao\": \"<string>\",\n  \"retencoes_federais\": {\n    \"ir\": \"<boolean>\",\n    \"csrf\": \"<boolean>\",\n    \"inss\": \"<boolean>\"\n  }\n}",
               "options": {
                 "raw": {
                   "headerFamily": "json",
@@ -1449,7 +1449,7 @@
             "method": "POST",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tomador_tipo\": \"pf\",\n  \"tomador_id\": \"<string>\",\n  \"valor\": \"<number>\",\n  \"chave_idempotencia\": \"<string>\",\n  \"assinatura_previa\": \"<string>\",\n  \"servico_id\": \"<string>\",\n  \"descricao\": \"<string>\",\n  \"competencia\": \"<date>\",\n  \"retem_iss\": \"<boolean>\",\n  \"aliquota_iss\": \"<number>\",\n  \"municipio_prestacao\": \"<string>\",\n  \"confirmo_repeticao\": \"<boolean>\",\n  \"permitir_repetida_de\": \"<string>\"\n}",
+              "raw": "{\n  \"tomador_tipo\": \"pf\",\n  \"tomador_id\": \"<string>\",\n  \"valor\": \"<number>\",\n  \"chave_idempotencia\": \"<string>\",\n  \"assinatura_previa\": \"<string>\",\n  \"servico_id\": \"<string>\",\n  \"descricao\": \"<string>\",\n  \"competencia\": \"<date>\",\n  \"retem_iss\": \"<boolean>\",\n  \"aliquota_iss\": \"<number>\",\n  \"municipio_prestacao\": \"<string>\",\n  \"retencoes_federais\": {\n    \"ir\": \"<boolean>\",\n    \"csrf\": \"<boolean>\",\n    \"inss\": \"<boolean>\"\n  },\n  \"confirmo_repeticao\": \"<boolean>\",\n  \"permitir_repetida_de\": \"<string>\"\n}",
               "options": {
                 "raw": {
                   "headerFamily": "json",

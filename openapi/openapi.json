@@ -2999,6 +2999,21 @@
                     "type": "string",
                     "description": "código IBGE"
                   },
+                  "retencoes_federais": {
+                    "type": "object",
+                    "description": "regime regular (decisão da nota): o cliente retém IR, PIS/COFINS/CSLL e INSS? Chave ausente = false; ao menos uma chave; ausente = sem decisão (a nota espera)",
+                    "properties": {
+                      "ir": {
+                        "type": "boolean"
+                      },
+                      "csrf": {
+                        "type": "boolean"
+                      },
+                      "inss": {
+                        "type": "boolean"
+                      }
+                    }
+                  },
                   "confirmo_repeticao": {
                     "type": "boolean",
                     "description": "sim à trava de 2 min (`emissao_repetida_recente`)"
@@ -3748,6 +3763,21 @@
                   "municipio_prestacao": {
                     "type": "string",
                     "description": "código IBGE"
+                  },
+                  "retencoes_federais": {
+                    "type": "object",
+                    "description": "regime regular (decisão da nota): o cliente retém IR, PIS/COFINS/CSLL e INSS? Chave ausente = false; ao menos uma chave; ausente = sem decisão (a nota espera)",
+                    "properties": {
+                      "ir": {
+                        "type": "boolean"
+                      },
+                      "csrf": {
+                        "type": "boolean"
+                      },
+                      "inss": {
+                        "type": "boolean"
+                      }
+                    }
                   }
                 }
               }
@@ -3942,6 +3972,21 @@
                   "municipio_prestacao": {
                     "type": "string",
                     "description": "código IBGE"
+                  },
+                  "retencoes_federais": {
+                    "type": "object",
+                    "description": "regime regular (decisão da nota): o cliente retém IR, PIS/COFINS/CSLL e INSS? Chave ausente = false; ao menos uma chave; ausente = sem decisão (a nota espera)",
+                    "properties": {
+                      "ir": {
+                        "type": "boolean"
+                      },
+                      "csrf": {
+                        "type": "boolean"
+                      },
+                      "inss": {
+                        "type": "boolean"
+                      }
+                    }
                   },
                   "chave_idempotencia": {
                     "type": "string"
