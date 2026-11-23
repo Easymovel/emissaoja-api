@@ -2,13 +2,13 @@
 
 # API de NFS-e nacional sem certificado digital (emissaoja)
 
-A **API do [emissaoja](https://emissaoja.com.br)** emite **NFS-e (Nota Fiscal de Serviço eletrônica) no Emissor Nacional** (nfse.gov.br) a partir do seu sistema, com o CNPJ e a senha do portal da empresa, **sem certificado digital**, para **MEI e empresas do Simples Nacional**. Você cadastra a empresa uma vez, cria tomadores pelo CNPJ, emite com uma chave de idempotência, acompanha a autorização e baixa o **PDF (DANFSe) e o XML**.
+A **API do [emissaoja](https://emissaoja.com.br/?origem=api-github&utm_source=github&utm_medium=readme&utm_campaign=home)** emite **NFS-e (Nota Fiscal de Serviço eletrônica) no Emissor Nacional** (nfse.gov.br) a partir do seu sistema, com o CNPJ e a senha do portal da empresa, **sem certificado digital**, para **MEI e empresas do Simples Nacional**. Você cadastra a empresa uma vez, cria tomadores pelo CNPJ, emite com uma chave de idempotência, acompanha a autorização e baixa o **PDF (DANFSe) e o XML**.
 
 Este repositório reúne o que é público da API: a especificação **[OpenAPI 3.1](openapi/openapi.json)** (sincronizada toda semana com a produção), a **[coleção do Postman](postman/emissaoja.postman_collection.json)**, exemplos em [curl](exemplos/emitir-nfse-sandbox.sh) e em [arquivo .http](exemplos/emissaoja.http), e os links para as bibliotecas oficiais.
 
 | | |
 | --- | --- |
-| Documentação | [emissaoja.com.br/docs](https://emissaoja.com.br/docs/) · [Markdown](https://emissaoja.com.br/docs.md) · [llms.txt](https://emissaoja.com.br/llms.txt) |
+| Documentação | [emissaoja.com.br/docs](https://emissaoja.com.br/docs/?origem=api-github&utm_source=github&utm_medium=readme&utm_campaign=docs) · [Markdown](https://emissaoja.com.br/docs.md) · [llms.txt](https://emissaoja.com.br/llms.txt) |
 | OpenAPI | [`https://emissaoja.com.br/v1/openapi.json`](https://emissaoja.com.br/v1/openapi.json) |
 | Produção | `https://emissaoja.com.br` (chaves `ej_live_`) |
 | Sandbox | `https://sandbox.emissaoja.com.br` (Emissor Nacional simulado, chaves `ej_test_`, grátis) |
@@ -68,22 +68,22 @@ Importe [`postman/emissaoja.postman_collection.json`](postman/emissaoja.postman_
 - **Emissão assíncrona:** `POST /v1/notas` devolve `202` com o `pedido`; o estado anda `na_fila → emitindo → confirmando → autorizada | recusada | incerta`. A resposta traz `proxima_consulta_ms`.
 - **Idempotência:** `Idempotency-Key` obrigatório. Repetir devolve o mesmo pedido; nota igual no mesmo dia volta `409 possivel_duplicada`.
 - **Erros:** sempre `{ "status": "ERROR", "code": "...", "message": "..." }`; decida pelo `code`. `422 nota_bloqueada` traz `bloqueios[]` com a ação de cada um.
-- **Limites:** 60 chamadas por minuto por chave, 10 emissões por minuto. O plano Grátis emite 1 nota por mês; planos em [emissaoja.com.br/#precos](https://emissaoja.com.br/#precos).
+- **Limites:** 60 chamadas por minuto por chave, 10 emissões por minuto. O plano Grátis emite 1 nota por mês; planos em [emissaoja.com.br/#precos](https://emissaoja.com.br/?origem=api-github&utm_source=github&utm_medium=readme&utm_campaign=precos#precos).
 - **Público:** MEI, ME e EPP optantes pelo Simples Nacional, em município que emite pelo Emissor Nacional.
 
 ## Perguntas frequentes
 
 **Precisa de certificado digital?** Não. O emissaoja usa o acesso por CNPJ e senha que o Emissor Nacional oferece a MEI e empresas do Simples Nacional.
 
-**O que é a NFS-e nacional?** É o padrão único de Nota Fiscal de Serviço eletrônica, emitido pelo Emissor Nacional e guardado no Ambiente de Dados Nacional (ADN), que substitui os sistemas próprios das prefeituras aderentes. Mais em [emissaoja.com.br/api-nfse-nacional](https://emissaoja.com.br/api-nfse-nacional).
+**O que é a NFS-e nacional?** É o padrão único de Nota Fiscal de Serviço eletrônica, emitido pelo Emissor Nacional e guardado no Ambiente de Dados Nacional (ADN), que substitui os sistemas próprios das prefeituras aderentes. Mais em [emissaoja.com.br/api-nfse-nacional](https://emissaoja.com.br/api-nfse-nacional?origem=api-github&utm_source=github&utm_medium=readme&utm_campaign=api-nfse-nacional).
 
 **Tem webhook?** Ainda não; acompanhe o pedido em `GET /v1/emissoes/{id}`.
 
-**Dá para emitir pelo ChatGPT ou pelo Claude?** Sim, pelo servidor MCP: [emissaoja.com.br/emitir-nota-fiscal-por-ia](https://emissaoja.com.br/emitir-nota-fiscal-por-ia).
+**Dá para emitir pelo ChatGPT ou pelo Claude?** Sim, pelo servidor MCP: [emissaoja.com.br/emitir-nota-fiscal-por-ia](https://emissaoja.com.br/emitir-nota-fiscal-por-ia?origem=api-github&utm_source=github&utm_medium=readme&utm_campaign=emitir-nota-fiscal-por-ia).
 
 ## In English
 
-Public resources for the [emissaoja API](https://emissaoja.com.br/docs/), which issues Brazilian **NFS-e** (electronic service invoices) through the national **Emissor Nacional** without a digital certificate, for MEI and Simples Nacional companies: OpenAPI 3.1 spec (synced weekly), Postman collection, curl and `.http` examples, official SDKs (Node.js, Python, PHP, .NET, Go, Ruby), an n8n node, a WooCommerce plugin and a remote MCP server. Free sandbox with a simulated tax authority.
+Public resources for the [emissaoja API](https://emissaoja.com.br/docs/?origem=api-github&utm_source=github&utm_medium=readme&utm_campaign=docs), which issues Brazilian **NFS-e** (electronic service invoices) through the national **Emissor Nacional** without a digital certificate, for MEI and Simples Nacional companies: OpenAPI 3.1 spec (synced weekly), Postman collection, curl and `.http` examples, official SDKs (Node.js, Python, PHP, .NET, Go, Ruby), an n8n node, a WooCommerce plugin and a remote MCP server. Free sandbox with a simulated tax authority.
 
 ---
 
