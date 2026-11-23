@@ -5,7 +5,7 @@ const crypto = require('crypto');
 const p = 'postman/emissaoja.postman_collection.json';
 const c = JSON.parse(fs.readFileSync(p, 'utf8'));
 c.info.name = 'emissaoja API (NFS-e nacional)';
-c.info.description = 'Coleção oficial da API do emissaoja: emita NFS-e no Emissor Nacional sem certificado digital, para MEI e Simples Nacional. Defina a variável apiKey com uma chave ej_test_ (sandbox) ou ej_live_ (produção), criada em Conta → API. A variável baseUrl começa no sandbox (https://sandbox.emissaoja.com.br); em produção, use https://emissaoja.com.br. Documentação: https://emissaoja.com.br/docs/';
+c.info.description = 'Coleção oficial da API do emissaoja: emita NFS-e no Emissor Nacional sem certificado digital, para MEI e Simples Nacional. Defina a variável apiKey com uma chave ej_test_ (sandbox) ou ej_live_ (produção), criada em Conta → API. A variável baseUrl começa no sandbox (https://sandbox.emissaoja.com.br); em produção, use https://emissaoja.com.br. Documentação: https://emissaoja.com.br/docs/?origem=api-github&utm_source=github&utm_medium=postman&utm_campaign=docs';
 c.info._postman_id = 'b6f1c0de-5e1a-4c0a-9a0e-3e15a0ca0001';
 c.variable = [
   { key: 'baseUrl', value: 'https://sandbox.emissaoja.com.br', type: 'string' },
